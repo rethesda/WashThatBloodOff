@@ -5,14 +5,18 @@ namespace Swim
 {
 	void detail::clear_blood(const RE::Character* a_actor, const RE::hkpCollidable* a_collidable)
 	{
-		const auto colLayer = static_cast<RE::COL_LAYER>(a_collidable->broadPhaseHandle.collisionFilterInfo & 0x7F);
+		if (Rain::Precipitation::IsRaining() && Settings::GetSingleton()->GetAllowRainingNoBlood()) {
+			return;
+		}
 
-		if (colLayer == RE::COL_LAYER::kCharController && a_actor->IsSwimming() && util::can_show_blood(a_actor)) {
-			util::clear_decals(a_actor, Rain::Manager::GetSingleton()->IsRaining());
+		if (const auto colLayer = a_collidable->broadPhaseHandle.collisionFilterInfo.GetCollisionLayer(); colLayer == RE::COL_LAYER::kCharController) {
+			if (a_actor->IsSwimming() && util::can_show_blood(a_actor)) {
+				util::clear_decals(a_actor);
+			}
 		}
 	}
 
-    void Install()
+	void Install()
 	{
 		stl::write_vfunc<RE::PlayerCharacter, ProcessInWater::Player>();
 
@@ -20,6 +24,6 @@ namespace Swim
 			stl::write_vfunc<RE::Character, ProcessInWater::NPC>();
 		}
 
-		logger::info("Installed swim manager");
+		REX::INFO("Installed swim manager");
 	}
 }

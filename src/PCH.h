@@ -1,32 +1,22 @@
 #pragma once
 
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 
 #include "RE/Skyrim.h"
+#include "REX/REX.h"
 #include "SKSE/SKSE.h"
 
-#include "ClibUtil/simpleINI.hpp"
-#include "ClibUtil/singleton.hpp"
 #include <spdlog/sinks/basic_file_sink.h>
 
-#define DLLEXPORT __declspec(dllexport)
-
-namespace logger = SKSE::log;
-
-using namespace clib_util;
-using namespace clib_util::singleton;
 using namespace std::literals;
 
 namespace stl
 {
-	using namespace SKSE::stl;
-
 	template <class T>
 	void write_thunk_call(std::uintptr_t a_src)
 	{
-		SKSE::AllocTrampoline(14);
-
-		auto& trampoline = SKSE::GetTrampoline();
+		auto& trampoline = REL::GetTrampoline();
 		T::func = trampoline.write_call<5>(a_src, T::thunk);
 	}
 
@@ -44,11 +34,26 @@ namespace stl
 	}
 }
 
-#include "Util.h"
-#include "Version.h"
+namespace Runtime
+{
+	inline constexpr REL::Version SSE_1_7_99(1, 7, 99, 0);
+	inline constexpr REL::Version MIN_ADDRESS_LIBRARY_V5 = SSE_1_7_99;
+
+	[[nodiscard]] inline bool IsAtLeast1_7_99() noexcept
+	{
+		static bool result = REX::FModule::GetExecutingModule().GetFileVersion() >= Runtime::SSE_1_7_99;
+		return result;
+	}
+}
 
 #ifdef SKYRIM_AE
 #	define OFFSET(se, ae) ae
+#	define OFFSET_VERSIONED(se, ae, ae1799) \
+		(Runtime::IsAtLeast1_7_99() ? (ae1799) : (ae))
 #else
 #	define OFFSET(se, ae) se
+#	define OFFSET_VERSIONED(se, ae, ae1799) se
 #endif
+
+#include "Util.h"
+#include "Version.h"

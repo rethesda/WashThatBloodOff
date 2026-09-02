@@ -18,8 +18,7 @@ namespace Swim
 				return func(a_actor, a_collidable, a_waterHeight, a_deltaTime);
 			}
 			static inline REL::Relocation<decltype(thunk)> func;
-
-			static inline constexpr std::size_t idx{ 0x9C };
+			static inline constexpr std::size_t            idx{ 0x9C };
 		};
 
 		struct NPC
@@ -31,8 +30,7 @@ namespace Swim
 				return func(a_actor, a_collidable, a_waterHeight, a_deltaTime);
 			}
 			static inline REL::Relocation<decltype(thunk)> func;
-
-			static inline constexpr std::size_t idx{ 0x9C };
+			static inline constexpr std::size_t            idx{ 0x9C };
 		};
 	};
 

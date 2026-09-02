@@ -8,7 +8,7 @@ namespace util
 		return race && race->data.flags.none(RE::RACE_DATA::Flag::kDontShowBloodDecal);
 	}
 
-    inline void clear_decals(const RE::Actor* a_actor)
+    inline void clear_decals_impl(const RE::Actor* a_actor)
 	{
 		for (std::uint32_t i = 0; i < 2; i++) {
 			const auto root = a_actor->Get3D(i);
@@ -29,17 +29,13 @@ namespace util
 		}
 	}
 
-	inline void clear_decals(const RE::Actor* a_actor, bool a_alreadyRaining)
+	inline void clear_decals(const RE::Actor* a_actor)
 	{
-		if (a_alreadyRaining) {
-			return;
-		}
-
 		if (a_actor->IsPlayerRef()) {
 			RE::ScreenSplatter::GetSingleton()->Clear();
 		}
 
-		clear_decals(a_actor);
+		clear_decals_impl(a_actor);
 	}
 
     inline void clear_decals_all()
@@ -47,7 +43,7 @@ namespace util
         if (const auto processLists = RE::ProcessLists::GetSingleton()) {
 			for (auto& actorHandle : processLists->highActorHandles) {
 				if (const auto actor = actorHandle.get(); actor && can_show_blood(actor.get())) {
-					clear_decals(actor.get());
+					clear_decals_impl(actor.get());
 				}
 			}
 		}

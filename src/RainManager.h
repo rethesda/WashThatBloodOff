@@ -5,30 +5,29 @@
 
 namespace Rain
 {
-	class Manager : public ISingleton<Manager>
+	struct Precipitation
 	{
 	public:
 		static void Install();
 
-		bool IsRaining() const { return _raining; }
-		void SetRaining(const bool a_isRaining) { _raining = a_isRaining; }
+		static bool IsRaining() { return _raining; }
+		static void SetRaining(const bool a_isRaining) { _raining = a_isRaining; }
 
-	protected:
+		template <std::size_t N>
 		struct UpdatePrecipitation
 		{
 			static void thunk(RE::Precipitation* a_precip)
 			{
 				func(a_precip);
 
-				const auto manager = GetSingleton();
 				const auto sky = RE::Sky::GetSingleton();
 
-				if (bool isRaining = sky->IsRaining(); manager->IsRaining() != isRaining) {
-					manager->SetRaining(isRaining);
+				if (bool isRaining = sky->IsRaining(); IsRaining() != isRaining) {
+					SetRaining(isRaining);
 
-					if (manager->IsRaining()) {
-						util::clear_decals(RE::PlayerCharacter::GetSingleton(), false);
-					    if (Settings::GetSingleton()->GetAllowRainingNPC()) {
+					if (IsRaining()) {
+						util::clear_decals(RE::PlayerCharacter::GetSingleton());
+						if (Settings::GetSingleton()->GetAllowRainingNPC()) {
 							util::clear_decals_all();
 						}
 					}
@@ -37,17 +36,17 @@ namespace Rain
 			static inline REL::Relocation<decltype(thunk)> func;
 		};
 
+		template <std::size_t N>
 		struct SetInterior
 		{
 			static void thunk(bool a_isInterior)
 			{
 				func(a_isInterior);
 
-				const auto manager = GetSingleton();
 				if (a_isInterior) {
-					manager->SetRaining(false);
+					SetRaining(false);
 				} else if (const auto sky = RE::Sky::GetSingleton(); sky && sky->IsRaining()) {
-					util::clear_decals(RE::PlayerCharacter::GetSingleton(), false);
+					util::clear_decals(RE::PlayerCharacter::GetSingleton());
 					if (Settings::GetSingleton()->GetAllowRainingNPC()) {
 						util::clear_decals_all();
 					}
@@ -57,18 +56,20 @@ namespace Rain
 		};
 
 	private:
-		std::atomic_bool _raining{ false };
+		static inline std::atomic_bool _raining{ false };
 	};
 
 	namespace Decal::Actor
 	{
 		struct AddDecal
 		{
-			static void thunk(RE::TESObjectCELL* a_cell, RE::DECAL_CREATION_DATA& a_data, bool a_unk03)
+			static void thunk(RE::TESObjectCELL* a_cell, RE::DECAL_CREATION_DATA& a_data, bool a_forceAdd)
 			{
-				if (!Manager::GetSingleton()->IsRaining()) {
-					func(a_cell, a_data, a_unk03);
+				if (Precipitation::IsRaining()) {
+					return;
 				}
+
+				return func(a_cell, a_data, a_forceAdd);
 			}
 			static inline REL::Relocation<decltype(thunk)> func;
 		};
@@ -78,7 +79,7 @@ namespace Rain
 			static std::int32_t thunk(float a_damage)
 			{
 				auto count = func(a_damage);
-				if (Manager::GetSingleton()->IsRaining()) {
+				if (Precipitation::IsRaining()) {
 					count = 0;
 				}
 				return count;
@@ -97,7 +98,7 @@ namespace Rain
 			{
 				auto result = func(a_process);
 				if (result) {
-					result = Manager::GetSingleton()->IsRaining();
+					result = Precipitation::IsRaining();
 				}
 				return result;
 			}
