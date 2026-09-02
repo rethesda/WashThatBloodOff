@@ -18,10 +18,10 @@ namespace Swim
 
 	void Install()
 	{
-		stl::write_vfunc<RE::PlayerCharacter, ProcessInWater::Player>();
+		stl::write_vfunc<RE::PlayerCharacter, ProcessInWater<RE::PlayerCharacter>>();
 
 		if (Settings::GetSingleton()->GetAllowSwimmingNPC()) {
-			stl::write_vfunc<RE::Character, ProcessInWater::NPC>();
+			stl::write_vfunc<RE::Character, ProcessInWater<RE::Character>>();
 		}
 
 		REX::INFO("Installed swim manager");

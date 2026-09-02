@@ -20,15 +20,12 @@ namespace Rain
 			{
 				func(a_precip);
 
-				const auto sky = RE::Sky::GetSingleton();
+				if (const auto sky = RE::Sky::GetSingleton()) {
+					if (bool isRaining = sky->IsRaining(); IsRaining() != isRaining) {
+						SetRaining(isRaining);
 
-				if (bool isRaining = sky->IsRaining(); IsRaining() != isRaining) {
-					SetRaining(isRaining);
-
-					if (IsRaining()) {
-						util::clear_decals(RE::PlayerCharacter::GetSingleton());
-						if (Settings::GetSingleton()->GetAllowRainingNPC()) {
-							util::clear_decals_all();
+						if (IsRaining()) {
+							Precipitation::clear_rain_decals();
 						}
 					}
 				}
@@ -46,16 +43,21 @@ namespace Rain
 				if (a_isInterior) {
 					SetRaining(false);
 				} else if (const auto sky = RE::Sky::GetSingleton(); sky && sky->IsRaining()) {
-					util::clear_decals(RE::PlayerCharacter::GetSingleton());
-					if (Settings::GetSingleton()->GetAllowRainingNPC()) {
-						util::clear_decals_all();
-					}
+					Precipitation::clear_rain_decals();
 				}
 			}
 			static inline REL::Relocation<decltype(thunk)> func;
 		};
 
 	private:
+		static void clear_rain_decals()
+		{
+			util::clear_decals(RE::PlayerCharacter::GetSingleton());
+			if (Settings::GetSingleton()->GetAllowRainingNPC()) {
+				util::clear_decals_all();
+			}
+		}
+
 		static inline std::atomic_bool _raining{ false };
 	};
 

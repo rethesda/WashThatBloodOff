@@ -42,7 +42,7 @@ namespace util
 	{
         if (const auto processLists = RE::ProcessLists::GetSingleton()) {
 			for (auto& actorHandle : processLists->highActorHandles) {
-				if (const auto actor = actorHandle.get(); actor && can_show_blood(actor.get())) {
+				if (const auto actor = actorHandle.get(); actor && can_show_blood(actor.get()) && actor->Is3DLoaded()) {
 					clear_decals_impl(actor.get());
 				}
 			}
